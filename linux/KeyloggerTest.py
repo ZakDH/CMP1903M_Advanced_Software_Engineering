@@ -42,8 +42,7 @@ class KeyloggerTest(unittest.TestCase):
             mock_hook_manager.KeyDown.assert_called_once_with(keylogger.on_key_press)
             mock_hook_manager.HookKeyboard.assert_called_once()
             mock_hook_manager.start.assert_called_once()    
-            
-            
+                       
             
     @patch('pyxhook.print_err')
     def test_start_exception_handling(self, mock_print_err):
@@ -64,7 +63,26 @@ class KeyloggerTest(unittest.TestCase):
             mock_hook_manager.cancel.assert_called_once()
             mock_print_err.assert_not_called()
             
+    @patch('pyxhook.print_err')
+    def test_start_exception_handling_with_error(self, mock_print_err):
+        keylogger = Keylogger()
 
+        # Mock the pyxhook module and the HookManager class
+        mock_pyxhook = MagicMock()
+        mock_hook_manager = MagicMock()
+        mock_hook_manager.start.side_effect = Exception('Some error')
+        mock_pyxhook.HookManager.return_value = mock_hook_manager
+
+        # Patch the necessary modules
+        with patch('pyxhook', mock_pyxhook), \
+             patch('builtins.open') as mock_open:
+            keylogger.start()
+
+            # Assert that the HookManager was canceled and the error message was written to the file
+            mock_hook_manager.cancel.assert_called_once()
+            mock_print_err.assert_called_once()
+            mock_open.assert_called_once()
+            mock_open.return_value.write.assert_called_once()
 
 if __name__ == "__main__":
     unittest.main()
