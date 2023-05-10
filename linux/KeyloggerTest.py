@@ -24,6 +24,24 @@ class KeyloggerTest(unittest.TestCase):
 
             # Assert that the correct content was written to the file
             mock_file.write.assert_called_once_with('A')
+            
+    def test_start(self):
+        keylogger = Keylogger()
+
+        # Mock the pyxhook module and the HookManager class
+        mock_pyxhook = MagicMock()
+        mock_hook_manager = MagicMock()
+        mock_pyxhook.HookManager.return_value = mock_hook_manager
+
+        # Patch the necessary modules
+        with patch('pyxhook', mock_pyxhook), \
+             patch('builtins.open'):
+            keylogger.start()
+
+            # Assert that the HookManager was created and configured correctly
+            mock_hook_manager.KeyDown.assert_called_once_with(keylogger.on_key_press)
+            mock_hook_manager.HookKeyboard.assert_called_once()
+            mock_hook_manager.start.assert_called_once()    
 
 if __name__ == "__main__":
     unittest.main()
